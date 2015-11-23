@@ -45,20 +45,17 @@ function getChecks() {
     return availableFunctions;
 }
 
-function addMethods(object, methods) {
+function addMethods(availableFunctions, methods) {
     for (var i = 0; i < methods.length; i++) {
-        object[methods[i].name] = methods[i].bind(this);
+        availableFunctions[methods[i].name] = methods[i].bind(this);
     }
 }
 
 function containsKeys(keys) {
     var thisKeys = Object.keys(this);
-    for (var i = 0; i < keys.length; i++) {
-        if (thisKeys.indexOf(keys[i]) === -1) {
-            return false;
-        }
-    }
-    return true;
+    return keys.every(function (key) {
+        return thisKeys.indexOf(key) >= 0;
+    }, this);
 }
 
 function hasKeys(keys) {
@@ -70,28 +67,24 @@ function hasKeys(keys) {
 }
 
 function containsValues(values) {
-    var thisKeys = Object.keys(this);
-    var thisValues = [];
-    for (var i = 0; i < thisKeys.length; i++) {
-        thisValues.push(this[thisKeys[i]]);
-    }
-    for (var i = 0; i < values.length; i++) {
-        if (thisValues.indexOf(values[i]) === -1) {
-            return false;
-        }
-    }
-    return true;
+    var keys = Object.keys(this);
+    var thisValues = keys.map(function (key) {
+        return this[key];
+    }, this);
+    return values.every(function (value) {
+        return thisValues.indexOf(value) >= 0;
+    }, this);
 }
 
 function hasValues(values) {
-    var thisKeys = Object.keys(this);
-    if (thisKeys.length === values.length && this.check.containsValues(Values)) {
-        return true;
-    }
-    return false;
+    return Object.keys(this).length ===
+        values.length && this.check.containsValues(values) ? true : false;
 }
 
 function hasValueType(key, type) {
+    if (this[key] === null) {
+        return false;
+    }
     return typeof this[key] === type.name.toLowerCase();
 }
 
@@ -105,5 +98,11 @@ function hasParamsCount(count) {
 
 function hasWordsCount(count) {
     var words = this.split(' ');
-    return words.length === count;
+    var wordsCount = 0;
+    words.forEach(function (word) {
+        if (word !== '') {
+            wordsCount++;
+        }
+    });
+    return wordsCount === count;
 }
